@@ -23,15 +23,11 @@ public class Proceso {
     private int tiempoRestante;
     private String estado;
     private int prioridad;
-    // 16 12 19 
-    
-    
-    // solol para guardar
-    FIFO unico ;
+    private ArrayList<Recurso> listaRecursos;
 
-    
-    
-    
+    // solol para guardar
+    FIFO unico;
+
     ArrayList<Integer> puntosFinales = new ArrayList<>();
     ArrayList<Integer> puntosInicio = new ArrayList<>();
 
@@ -49,7 +45,7 @@ public class Proceso {
         this.prioridad = prioridad;
         this.estado = "Listo";           // TablaPaginas(int idTabla, int maxPaginas,int maxMarcos, )
         this.tablaPaginas = new TablaPaginas(idProceso, cantidadPaginas, maxMarcos);
-
+        inicializarRecursos();
         generarPaginas();
     }
 
@@ -150,36 +146,49 @@ public class Proceso {
     public void setUnico(FIFO unico) {
         this.unico = unico;
     }
-    
-    
+
     public void setIdProceso(int idProceso) {
-    this.idProceso = idProceso;
-}
+        this.idProceso = idProceso;
+    }
 
-public void setNombre(String nombre) {
-    this.nombre = nombre;
-}
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
 
-public void setTamañoEnBytes(int tamañoEnBytes) {
-    this.tamañoEnBytes = tamañoEnBytes;
-}
+    public void setTamañoEnBytes(int tamañoEnBytes) {
+        this.tamañoEnBytes = tamañoEnBytes;
+    }
 
-public void setCantidadPaginas(int cantidadPaginas) {
-    this.cantidadPaginas = cantidadPaginas;
-}
+    public void setCantidadPaginas(int cantidadPaginas) {
+        this.cantidadPaginas = cantidadPaginas;
+    }
 
-public void setTiempoLlegada(int tiempoLlegada) {
-    this.tiempoLlegada = tiempoLlegada;
-}
+    public void setTiempoLlegada(int tiempoLlegada) {
+        this.tiempoLlegada = tiempoLlegada;
+    }
 
-public void setTiempoRafaga(int tiempoRafaga) {
-    this.tiempoRafaga = tiempoRafaga;
-}
+    public void setTiempoRafaga(int tiempoRafaga) {
+        this.tiempoRafaga = tiempoRafaga;
+    }
 
-public void setPrioridad(int prioridad) {
-    this.prioridad = prioridad;
-}
+    public void setPrioridad(int prioridad) {
+        this.prioridad = prioridad;
+    }
 
+    public ArrayList<Recurso> getListaRecursos() {
+        return listaRecursos;
+    }
+
+    public void setListaRecursos(ArrayList<Recurso> listaRecursos) {
+        this.listaRecursos = listaRecursos;
+    }
+
+    public void inicializarRecursos() {
+        this.listaRecursos = new ArrayList<>();
+        for (int i = 0; i < 3; i++) {
+            listaRecursos.add(new Recurso(i, "Recurso_" + i, 50));
+        }
+    }
 
     @Override
     public String toString() {

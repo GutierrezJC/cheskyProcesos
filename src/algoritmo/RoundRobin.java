@@ -14,9 +14,11 @@ import AlgoritmosRemplazo.OPT;
 import AlgortitmosSegmentacion.MejorAjuste;
 import AlgortitmosSegmentacion.PeorAjuste;
 import AlgortitmosSegmentacion.PrimerAjuste;
+import Objetos.Maquina;
 import Objetos.Pagina;
 import interfaz.VentanaPrincipalPrincipal;
 import Objetos.Proceso;
+import Objetos.Recurso;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
@@ -38,6 +40,7 @@ public class RoundRobin {
     private int tiempoActual = 0;
     ArrayList<Integer> puntosFinales = new ArrayList<>();
     ArrayList<Integer> puntosInicio = new ArrayList<>();
+    private Maquina maquina = new Maquina();
 
     public RoundRobin(int quantum, VentanaPrincipalPrincipal ventana) {
         this.quantum = quantum;
@@ -46,6 +49,23 @@ public class RoundRobin {
 
     public void ejecutar(List<Proceso> procesos) {
         new ejecutarRoundR(procesos).execute();
+    }
+
+    public List<Proceso> liberarProcesosSobrepasoRecursos(List<Proceso> procesosOrdenados) {
+        for (int i = 0; i < procesosOrdenados.size(); i++) {
+            if (maquina.recursosSobrepasaMaquina(procesosOrdenados.get(i).getListaRecursos())) {
+                procesosOrdenados.remove(i);
+            }
+        }
+        return procesosOrdenados;
+    }
+
+    public void asignarRecursos(ArrayList<Recurso> recursos) {
+        maquina.asignarRecurso(recursos);
+    }
+
+    public void liberarRecursos(ArrayList<Recurso> recursos) {
+        maquina.liberarRecurso(recursos);
     }
 
     private class ejecutarRoundR extends SwingWorker<Void, Proceso> {
@@ -64,8 +84,7 @@ public class RoundRobin {
         @Override
         protected Void doInBackground() throws Exception {
 
-                                  ArrayList<Particion> particiones = new ArrayList<>();
-
+            ArrayList<Particion> particiones = new ArrayList<>();
 
             while (!colaProcecos.isEmpty()) {
                 Proceso proceso = colaProcecos.poll();
@@ -87,7 +106,7 @@ public class RoundRobin {
                 }
 
                 if (paginacionXsegmentacion && idalgoritmosRemplazo == 1) {
-
+                    asignarRecursos(proceso.getListaRecursos());
                     if (proceso.getTiempoRestante() >= quantum) {
                         proceso.setTiempoRestante(proceso.getTiempoRestante() - quantum);
 
@@ -121,11 +140,11 @@ public class RoundRobin {
                         cpu();
 
                     }
-
+                    liberarRecursos(proceso.getListaRecursos());
                 }
 
                 if (paginacionXsegmentacion && idalgoritmosRemplazo == 2) {
-
+                    asignarRecursos(proceso.getListaRecursos());
                     if (proceso.getTiempoRestante() >= quantum) {
                         proceso.setTiempoRestante(proceso.getTiempoRestante() - quantum);
 
@@ -153,10 +172,11 @@ public class RoundRobin {
                         //                    System.out.println(proceso.getIdProceso() + " ha terminado.");
                         cpu();
                     }
+                    liberarRecursos(proceso.getListaRecursos());
                 }
 
                 if (paginacionXsegmentacion && idalgoritmosRemplazo == 3) {
-
+                    asignarRecursos(proceso.getListaRecursos());
                     if (proceso.getTiempoRestante() > quantum) {
                         proceso.setTiempoRestante(proceso.getTiempoRestante() - quantum);
 
@@ -179,73 +199,72 @@ public class RoundRobin {
                         //                    System.out.println(proceso.getIdProceso() + " ha terminado.");
                         cpu();
                     }
+                    liberarRecursos(proceso.getListaRecursos());
                 }
-                
+
                 //Aqui se colocan los tres if de segmentacion
-                
-                
-   // Primer Ajuste
-if (!paginacionXsegmentacion && idalgoritmosRemplazo == 1) {
-    PrimerAjuste primerAjuste = new PrimerAjuste();
+                // Primer Ajuste
+                if (!paginacionXsegmentacion && idalgoritmosRemplazo == 1) {
+                    asignarRecursos(proceso.getListaRecursos());
+                    PrimerAjuste primerAjuste = new PrimerAjuste();
 
-    if (primerAjuste.asignar(proceso, particiones)) {
-        proceso.setTiempoRestante(proceso.getTiempoRestante() - quantum);
-        publish(proceso);
-        cpu();
+                    if (primerAjuste.asignar(proceso, particiones)) {
+                        proceso.setTiempoRestante(proceso.getTiempoRestante() - quantum);
+                        publish(proceso);
+                        cpu();
 
-        if (proceso.getTiempoRestante() > 0) {
-            colaProcecos.offer(proceso); // Reagregar a la cola si no ha terminado
-        } else {
-            primerAjuste.desasignar(proceso, particiones); // Liberar memoria si ha terminado
-        }
-    } else {
-        System.out.println("No se encontró una partición para el proceso con Primer Ajuste.");
-    }
-}
+                        if (proceso.getTiempoRestante() > 0) {
+                            colaProcecos.offer(proceso); // Reagregar a la cola si no ha terminado
+                        } else {
+                            primerAjuste.desasignar(proceso, particiones); // Liberar memoria si ha terminado
+                        }
+                    } else {
+                        System.out.println("No se encontró una partición para el proceso con Primer Ajuste.");
+                    }
+                    liberarRecursos(proceso.getListaRecursos());
+                }
 
 // Mejor Ajuste
-if (!paginacionXsegmentacion && idalgoritmosRemplazo == 2) {
-    MejorAjuste mejorAjuste = new MejorAjuste();
+                if (!paginacionXsegmentacion && idalgoritmosRemplazo == 2) {
+                    asignarRecursos(proceso.getListaRecursos());
+                    MejorAjuste mejorAjuste = new MejorAjuste();
 
-    if (mejorAjuste.asignar(proceso, particiones)) {
-        proceso.setTiempoRestante(proceso.getTiempoRestante() - quantum);
-        publish(proceso);
-        cpu();
+                    if (mejorAjuste.asignar(proceso, particiones)) {
+                        proceso.setTiempoRestante(proceso.getTiempoRestante() - quantum);
+                        publish(proceso);
+                        cpu();
 
-        if (proceso.getTiempoRestante() > 0) {
-            colaProcecos.offer(proceso);
-        } else {
-            mejorAjuste.desasignar(proceso, particiones);
-        }
-    } else {
-        System.out.println("No se encontró una partición para el proceso con Mejor Ajuste.");
-    }
-}
+                        if (proceso.getTiempoRestante() > 0) {
+                            colaProcecos.offer(proceso);
+                        } else {
+                            mejorAjuste.desasignar(proceso, particiones);
+                        }
+                    } else {
+                        System.out.println("No se encontró una partición para el proceso con Mejor Ajuste.");
+                    }
+                    liberarRecursos(proceso.getListaRecursos());
+                }
 
 // Peor Ajuste
-if (!paginacionXsegmentacion && idalgoritmosRemplazo == 3) {
-    PeorAjuste peorAjuste = new PeorAjuste();
+                if (!paginacionXsegmentacion && idalgoritmosRemplazo == 3) {
+                    asignarRecursos(proceso.getListaRecursos());
+                    PeorAjuste peorAjuste = new PeorAjuste();
 
-    if (peorAjuste.asignar(proceso, particiones)) {
-        proceso.setTiempoRestante(proceso.getTiempoRestante() - quantum);
-        publish(proceso);
-        cpu();
+                    if (peorAjuste.asignar(proceso, particiones)) {
+                        proceso.setTiempoRestante(proceso.getTiempoRestante() - quantum);
+                        publish(proceso);
+                        cpu();
 
-        if (proceso.getTiempoRestante() > 0) {
-            colaProcecos.offer(proceso);
-        } else {
-            peorAjuste.desasignar(proceso, particiones);
-        }
-    } else {
-        System.out.println("No se encontró una partición para el proceso con Peor Ajuste.");
-    }
-}
-
-                
-                
-                
-                
-
+                        if (proceso.getTiempoRestante() > 0) {
+                            colaProcecos.offer(proceso);
+                        } else {
+                            peorAjuste.desasignar(proceso, particiones);
+                        }
+                    } else {
+                        System.out.println("No se encontró una partición para el proceso con Peor Ajuste.");
+                    }
+                }
+                liberarRecursos(proceso.getListaRecursos());
             }
             JOptionPane.showMessageDialog(null, "Simulación completada.");
             return null;
